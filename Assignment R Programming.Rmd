@@ -1,0 +1,202 @@
+---
+title: "Assignment - R Programming"
+author: "Team 10"
+date: "April 16 2021"
+output: pdf_document
+header-includes:
+- \usepackage{fancyhdr}
+- \pagestyle{fancy}
+- \fancyhead[CO,CE]{Group 10- Assignment R Programming}
+- \fancyfoot[CO,CE]{https://github.com/poojarao02/Assignment-1-R-Analysis}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(janitor) # janitor helps us clean datasets
+library(dbplyr)
+library(ggplot2)
+library(readxl)
+library(knitr)
+library(rmarkdown)
+library("ggpubr")
+##tinytex::install_tinytex()
+tinytex::tlmgr_install("pdfcrop")
+
+Sys.setenv(R_GSCMD="C:/Program Files/gs/gs9.54.9/bin/gswin64c.exe")
+tools::find_gs_cmd()
+Sys.getenv("R_GSCMD") 
+
+##update.packages(ask = FALSE, checkBuilt = TRUE)
+##tinytex::tlmgr_update()
+```
+
+## R Markdown - Netflix datasets
+This is an R Markdown document relating to Netflix datasets involving its shows, type, director, cast, country, date added, release year, rating, viewers, duration, category, and description. The dataset file can be found in **<https://github.com/poojarao02/Assignment-1-R-Analysis>**
+
+Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document.
+
+
+```{r echo=FALSE}
+dataset_01 <- read_excel("C:/Users/Library/Downloads/netflix_titles.xlsx")
+```
+
+### Column Specification
+```{r}
+str(dataset_01)
+```
+
+### 1. Print the structure of your dataset.
+```{r}
+print(dataset_01)
+```
+
+### 2. List the variables in your dataset.
+```{r}
+ls(dataset_01) 
+```
+
+### 3. Print the top 15 rows of your dataset.
+```{r}
+head(dataset_01,15) 
+```
+
+### 4. Write a user defined function using any of the variables from the data set.
+```{r}
+dry_principle <- c(dataset_01$country)
+edges <- function(v) {
+  first <- v[1]
+  last <- v[length(v)]
+  answer <- c(first, last)
+  return(answer)
+}
+edges(dry_principle)
+```
+
+### 5. Use data manipulation techniques and filter rows based on any logical criteria that exist in your dataset.
+```{r}
+dataset_01 <-na.omit((dataset_01)) # remove missing values
+dataset_01 = as.data.frame(dataset_01 %>% select(show_id, type, release_year)) 
+filter(dataset_01, type == "Movie" & release_year == "2010")
+```
+
+### 6. Identify the dependent & independent variables and use reshaping techniques and create a new data frame by joining those variables from your dataset.
+```{r}
+# Create vector objects.
+director <- c("Jorge Michel Grau","Gilbert Chan")
+country <- c("Mexico","Singapore")
+# Combine above two vectors into one data frame.
+addresses <- cbind(director,country)
+# Print the data frame.
+print(addresses)
+```
+
+### 7. Remove missing values in your dataset.
+```{r}
+dataset_01 <- read_excel("C:/Users/Library/Downloads/netflix_titles.xlsx")
+x = dataset_01 <-na.omit((dataset_01)) 
+print(x) # Result: from 7787 OBS. TO 4808 OBS.
+```
+
+### 8. Identify and remove duplicated data in your dataset.
+```{r}
+# Function to identify duplicated data.
+duplicated(dataset_01)
+# Function to remove duplicated data.
+dataset_01 %>% distinct()
+```
+
+### 9. Reorder multiple rows in descending order.
+ ```{r}
+dataset_01 <-na.omit((dataset_01)) # remove missing values
+x = dataset_01 %>% arrange(desc(release_year, type)) 
+print(x)
+```
+
+### 10. Rename some of the column names in your dataset.
+```{r}
+names(dataset_01)[1]<-"Sequence ID" # old name: sequence_id
+names(dataset_01)[2]<-"Show ID" # old name: show_id
+names(dataset_01)[3]<-"Category" # old name: type
+colnames(dataset_01)
+```
+
+### 11. Add new variables in your data frame by using a mathematical function
+```{r}
+dataset_01 <- read_excel("C:/Users/Library/Downloads/netflix_titles.xlsx")
+x = dataset_01 %>% mutate(viewers_half = viewers/2)
+colnames(x) # Result: "viewers_half" is added as the 15th variable
+print(x$viewers_half) # Function to view all data of 15th variable from equation "x = viewers/2"
+```
+
+### 12. Creating a training set using random number generator engine.
+```{r}
+set.seed(5678)
+dataset_01 %>% sample_n(9,replace = FALSE)
+```
+
+### 13. Print the summary statistics of your dataset.
+```{r}
+summary(dataset_01)
+```
+
+### 14.A. Mean
+```{r}
+NetflixRYMean <- mean(dataset_01$release_year)
+round(NetflixRYMean,digits=0)
+```
+
+### 14.B Median
+```{r}
+NetflixRYMedian <- median(dataset_01$release_year)
+print(NetflixRYMedian)
+```
+
+### 14.C Mode
+```{r}
+NetflixRYMode <- dataset_01$release_year[which.max(dataset_01$release_year)]
+print(NetflixRYMode)
+```
+
+### 14.D Range
+```{r}
+NetflixRYRange <- range(dataset_01$release_year)
+print(NetflixRYRange)
+```
+
+### 15. Scatter Plot
+```{r}
+ggplot(dataset_01, aes(x = release_year, y=viewers)) + geom_point(size = 1.2, color = "red", shape = 21)
+
+#  Analysis: There is an increase of viewers over the years
+```
+
+### 16. Bar Plot
+```{r}
+x = dataset_01$type 
+y = dataset_01$release_year
+z = complete.cases(x, y)
+counts <- table(x, y)
+barplot(counts, main="Netflix Content by Year and Type",
+        xlab="Year", col=c("blue", "red"),
+        legend = rownames(counts))
+
+# Analysis: Netflix content started with Movies, but, as time progressed, TV shows were also added. 
+# By 2015 to date, the amount of TV shows surpass Movie count on Netflix.
+```
+
+### 17. Correlation in linear regression
+```{r echo=TRUE}
+x <- dataset_01$duration
+y <- dataset_01$duration + rnorm(dataset_01$viewers,sd=300)
+
+# Creating the plot
+plot(x, y, pch = 19, col = "lightblue")
+
+# Regression line
+abline(lm(y ~ x), col = "red", lwd = 2)
+
+# Pearson correlation
+text(paste("Correlation:", round(cor(x, y), 2)), x = 1500, y = 10000)
+
+```
